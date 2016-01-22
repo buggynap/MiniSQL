@@ -510,7 +510,195 @@ class Parser {
 					}
 					else// means a condition is true check for that condition
 					{		
+						// why not to first check for the table to which the condition column they belong to
+						//Check if tables exists or not
 						
+						for(int i = 0; i < tableNames.size(); i++)
+						{
+							if(!isTablePresent(tableNames.get(i)))
+							{
+								System.out.println("\"" + tableNames.get(i) + "\" does not exists...");
+								return;
+							}
+						}
+						
+						//This variable is for the getting the table to which the first column belongs to in the condition
+						String fstTable = null;
+						
+						//Check of the table to which fst column belongs if it does not belong to any table throw error
+						//Iterate over the tablelist
+						
+						int flag = 0;
+						for(int i = 0; i < tableNames.size(); i++)
+						{
+							if(isColumnPresentInTable(tableNames.get(i),conditionColumn1.toString()))
+							{
+								fstTable = tableNames.get(i);
+								flag = 1;
+								break;
+							}
+						}
+						
+						if(flag == 0)
+						{
+							System.out.println("\"" + conditionColumn1 + "\" column is not part of any table");
+							return;
+						}
+						
+						
+						//This variable is for the getting the table to which the sec column belongs to in the condition
+						String secTable = null;
+						
+						//Check of the table to which sec column belongs if it does not belong to any table throw error
+						//Iterate over the tablelist
+						
+						flag = 0;
+						for(int i = 0; i < tableNames.size(); i++)
+						{
+							if(isColumnPresentInTable(tableNames.get(i),conditionColumn2.toString()))
+							{
+								secTable = tableNames.get(i);
+								flag = 1;
+								break;
+							}
+						}
+						
+						if(flag == 0)
+						{
+							System.out.println("\"" + conditionColumn2 + "\" column is not part of any table");
+							return;
+						}
+						
+						Vector <String> colResult = new Vector <String>();
+						// If "or" condition then no need to check anything just add the columns in the result vector
+						if(orCondition)
+						{
+							//get the rows from the first table
+							BufferedReader br = new BufferedReader(new FileReader("src/" + fstTable + ".csv"));
+							
+							int index = getIndex(fstTable, conditionColumn1.toString());
+	
+							String line;
+							try 
+							{
+								while((line = br.readLine()) != null)
+								{
+									String colList[] = line.split(",");
+									
+									if(equalsTo1)
+									{
+										if(colList[index].trim().equals(conditionColumnValue1.toString().trim()))
+											colResult.add(line);
+									}
+									else if(greaterThan1)
+									{
+										if(Float.parseFloat(colList[index].trim()) > Float.parseFloat(conditionColumnValue1.toString().trim()))
+											colResult.add(line);
+									}
+									else if(lessThan1)
+									{
+										if(Float.parseFloat(colList[index].trim()) < Float.parseFloat(conditionColumnValue1.toString().trim()))
+											colResult.add(line);
+									}
+									else if(lessThanEqTo1)
+									{
+										if(Float.parseFloat(colList[index].trim()) <= Float.parseFloat(conditionColumnValue1.toString().trim()))
+											colResult.add(line);
+									}
+									else if(greaterThanEqTo1)
+									{
+										if(Float.parseFloat(colList[index].trim()) >= Float.parseFloat(conditionColumnValue1.toString().trim()))
+											colResult.add(line);
+									}
+									else
+									{
+										errorRoutine(queryText);
+										return;
+									}
+								}
+							} 
+							catch (NumberFormatException e) 
+							{
+								e.printStackTrace();
+							} 
+							catch (IOException e) 
+							{
+								e.printStackTrace();
+							}
+							finally
+							{
+								br.close();
+							}
+							
+							//Get the rows from the second table
+							br = new BufferedReader(new FileReader("src/" + secTable + ".csv"));
+							
+							index = getIndex(secTable, conditionColumn2.toString());
+	
+							try 
+							{
+								while((line = br.readLine()) != null)
+								{
+									String colList[] = line.split(",");
+									
+									if(equalsTo2)
+									{
+										if(colList[index].trim().equals(conditionColumnValue2.toString().trim()) && !colResult.contains(line))
+											colResult.add(line);
+									}
+									else if(greaterThan2)
+									{
+										if(Float.parseFloat(colList[index].trim()) > Float.parseFloat(conditionColumnValue2.toString().trim()) && !colResult.contains(line))
+											colResult.add(line);
+									}
+									else if(lessThan2)
+									{
+										if(Float.parseFloat(colList[index].trim()) < Float.parseFloat(conditionColumnValue2.toString().trim()) && !colResult.contains(line))
+											colResult.add(line);
+									}
+									else if(lessThanEqTo2)
+									{
+										if(Float.parseFloat(colList[index].trim()) <= Float.parseFloat(conditionColumnValue2.toString().trim()) && !colResult.contains(line))
+											colResult.add(line);
+									}
+									else if(greaterThanEqTo2)
+									{
+										if(Float.parseFloat(colList[index].trim()) >= Float.parseFloat(conditionColumnValue2.toString().trim()) && !colResult.contains(line))
+											colResult.add(line);
+									}
+									else
+									{
+										errorRoutine(queryText);
+										return;
+									}
+								}
+							} 
+							catch (NumberFormatException e) 
+							{
+								e.printStackTrace();
+							} 
+							catch (IOException e) 
+							{
+								e.printStackTrace();
+							}
+							finally
+							{
+								br.close();
+							}
+							
+							
+							//print the result as per the columns asked by the user
+							
+							for(int i = 0; i < colResult.size(); i++)
+							{
+								String csv[] = colResult.get(i).toString().split(",");
+								for(int j = 0; j < csv.length; j++)
+								{
+									System.out.print(csv[j] + "\t");
+								}
+								System.out.println();
+							}
+						}
 					}	
 				}
 				else
