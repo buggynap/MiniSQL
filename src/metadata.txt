@@ -5,6 +5,11 @@ B
 C
 <end_table>
 <begin_table>
+table3
+P
+Q
+<end_table>
+<begin_table>
 table2
 B
 D
