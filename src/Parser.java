@@ -571,64 +571,66 @@ class Parser {
 						
 						Vector <String> colResult = new Vector <String>();
 						// If "or" condition then no need to check anything just add the columns in the result vector
-						if(orCondition)
+						//get the rows from the first table
+						BufferedReader br = new BufferedReader(new FileReader("src/" + fstTable + ".csv"));
+						
+						int index = getIndex(fstTable, conditionColumn1.toString());
+
+						String line;
+						try 
 						{
-							//get the rows from the first table
-							BufferedReader br = new BufferedReader(new FileReader("src/" + fstTable + ".csv"));
-							
-							int index = getIndex(fstTable, conditionColumn1.toString());
-	
-							String line;
-							try 
+							while((line = br.readLine()) != null)
 							{
-								while((line = br.readLine()) != null)
+								String colList[] = line.split(",");
+								
+								if(equalsTo1)
 								{
-									String colList[] = line.split(",");
-									
-									if(equalsTo1)
-									{
-										if(colList[index].trim().equals(conditionColumnValue1.toString().trim()))
-											colResult.add(line);
-									}
-									else if(greaterThan1)
-									{
-										if(Float.parseFloat(colList[index].trim()) > Float.parseFloat(conditionColumnValue1.toString().trim()))
-											colResult.add(line);
-									}
-									else if(lessThan1)
-									{
-										if(Float.parseFloat(colList[index].trim()) < Float.parseFloat(conditionColumnValue1.toString().trim()))
-											colResult.add(line);
-									}
-									else if(lessThanEqTo1)
-									{
-										if(Float.parseFloat(colList[index].trim()) <= Float.parseFloat(conditionColumnValue1.toString().trim()))
-											colResult.add(line);
-									}
-									else if(greaterThanEqTo1)
-									{
-										if(Float.parseFloat(colList[index].trim()) >= Float.parseFloat(conditionColumnValue1.toString().trim()))
-											colResult.add(line);
-									}
-									else
-									{
-										errorRoutine(queryText);
-										return;
-									}
+									if(colList[index].trim().equals(conditionColumnValue1.toString().trim()))
+										colResult.add(line);
 								}
-							} 
-							catch (NumberFormatException e) 
-							{
-								e.printStackTrace();
-							} 
-							catch (IOException e) 
-							{
-								e.printStackTrace();
+								else if(greaterThan1)
+								{
+									if(Float.parseFloat(colList[index].trim()) > Float.parseFloat(conditionColumnValue1.toString().trim()))
+										colResult.add(line);
+								}
+								else if(lessThan1)
+								{
+									if(Float.parseFloat(colList[index].trim()) < Float.parseFloat(conditionColumnValue1.toString().trim()))
+										colResult.add(line);
+								}
+								else if(lessThanEqTo1)
+								{
+									if(Float.parseFloat(colList[index].trim()) <= Float.parseFloat(conditionColumnValue1.toString().trim()))
+										colResult.add(line);
+								}
+								else if(greaterThanEqTo1)
+								{
+									if(Float.parseFloat(colList[index].trim()) >= Float.parseFloat(conditionColumnValue1.toString().trim()))
+										colResult.add(line);
+								}
+								else
+								{
+									errorRoutine(queryText);
+									return;
+								}
 							}
-							finally
-							{
-								br.close();
-							}
+						} 
+						catch (NumberFormatException e) 
+						{
+							e.printStackTrace();
+						} 
+						catch (IOException e) 
+						{
+							e.printStackTrace();
+						}
+						finally
+						{
+							br.close();
+						}
+						
+						if(!fstTable.equals(secTable) && !orCondition)
+						{
+							System.out.println("###"+fstTable+"###"+secTable+"###");
 							
 							//Get the rows from the second table
 							br = new BufferedReader(new FileReader("src/" + secTable + ".csv"));
@@ -685,10 +687,11 @@ class Parser {
 							{
 								br.close();
 							}
-							
-							
+						}
+						
+						if(orCondition || !fstTable.equals(secTable))
+						{
 							//print the result as per the columns asked by the user
-							
 							for(int i = 0; i < colResult.size(); i++)
 							{
 								String csv[] = colResult.get(i).toString().split(",");
@@ -699,7 +702,64 @@ class Parser {
 								System.out.println();
 							}
 						}
-					}	
+						else 
+						{
+							//	means the table to which the first condition column belong is same as that of the second condition column
+							// 	Both are same
+							//Need to check both the conditions
+							
+							int indexOfColumn = getIndex(secTable, conditionColumn2.toString());
+							Vector <String> result = new Vector <String>();
+							
+							for(int i = 0; i < colResult.size(); i++)
+							{
+								String csv[] = colResult.get(i).toString().split(",");
+								for(int j = 0; j < csv.length; j++)
+								{
+									//Check for the both the conditions at the same time
+									if(equalsTo2)
+									{
+										if(csv[indexOfColumn].trim().equals(conditionColumnValue2.toString().trim()) && !result.contains(colResult.get(i)))
+											result.add(colResult.get(i));
+									}
+									else if(greaterThan2)
+									{
+										if(Float.parseFloat(csv[indexOfColumn].trim()) > Float.parseFloat(conditionColumnValue2.toString().trim()) && !result.contains(colResult.get(i)))
+											result.add(colResult.get(i));
+									}
+									else if(lessThan2)
+									{
+										if(Float.parseFloat(csv[indexOfColumn].trim()) < Float.parseFloat(conditionColumnValue2.toString().trim()) && !result.contains(colResult.get(i)))
+											result.add(colResult.get(i));
+									}
+									else if(lessThanEqTo2)
+									{
+										if(Float.parseFloat(csv[indexOfColumn].trim()) <= Float.parseFloat(conditionColumnValue2.toString().trim()) && !result.contains(colResult.get(i)))
+											result.add(colResult.get(i));
+									}
+									else if(greaterThanEqTo2)
+									{
+										if(Float.parseFloat(csv[indexOfColumn].trim()) >= Float.parseFloat(conditionColumnValue2.toString().trim()) && !result.contains(colResult.get(i)))
+											result.add(colResult.get(i));
+									}
+									else
+									{
+										errorRoutine(queryText);
+										return;
+									}	
+								}
+							}
+							for(int i = 0; i < result.size(); i++)
+							{
+								String csv[] = result.get(i).toString().split(",");
+								for(int j = 0; j < csv.length; j++)
+								{
+									System.out.print(csv[j] + "\t");
+								}
+								System.out.println();
+							}
+						}
+					}
 				}
 				else
 				{
